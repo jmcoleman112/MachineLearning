@@ -1,21 +1,15 @@
-@'
-# Python
+# keep source files; only ignore clutter/large files
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.env
-.venv
+
+# virtual envs
+.venv/
 venv/
-*.egg-info/
 
 # IDE
 .idea/
 .vscode/
 
-# OS
-.DS_Store
-Thumbs.db
-'@ | Out-File -Encoding utf8 .gitignore
+# big data artifacts
 *.sqlite
 *.db

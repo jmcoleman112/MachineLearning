@@ -44,7 +44,7 @@ def feature_extraction():
         max_total_right = np.max(total_right)
         double_support = np.mean((total_left > 0.05 * max_total_left) & (total_right > 0.05 * max_total_right))
         features[i, 5] = double_support
-
+        # hi
         heel_L = (sensor_data["sensor_l1"] + sensor_data["sensor_l2"] + sensor_data["sensor_l3"]) / 3.0
         toe_L  = (sensor_data["sensor_l6"] + sensor_data["sensor_l7"] + sensor_data["sensor_l8"]) / 3.0
         heel_R = (sensor_data["sensor_r1"] + sensor_data["sensor_r2"] + sensor_data["sensor_r3"]) / 3.0
