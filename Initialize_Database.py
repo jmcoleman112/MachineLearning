@@ -4,8 +4,6 @@ import pandas as pd
 
 files = os.listdir("./Data/RawData/")
 patients = [os.path.splitext(f)[0].replace("_01", "") for f in files]
-print(files)
-print(patients)
 # path to your text file
 xls_file = "./Data/demographics.xls"   # <-- replace with the actual filename
 db_file = "Gait_Database.sqlite"
@@ -17,11 +15,11 @@ df = df[df[first_col].isin(patients)]
 # --- 4) Write to SQLite ---
 conn = sqlite3.connect(db_file)
 # Use a fixed schema/table name
-df.to_sql("patients", conn, if_exists="replace", index=False)
+df.to_sql("demographics", conn, if_exists="replace", index=False)
 
 # Quick sanity check
 cur = conn.cursor()
-cur.execute("SELECT COUNT(*) FROM patients;")
+cur.execute("SELECT COUNT(*) FROM demographics;")
 print("Rows inserted:", cur.fetchone()[0])
 
 # ==== USER SETTINGS ====

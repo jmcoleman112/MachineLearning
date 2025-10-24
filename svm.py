@@ -1,47 +1,65 @@
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.feature_selection import SequentialFeatureSelector
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from sklearn.svm import SVC
+from sklearn.base import clone
 
-def run_outer_cv_svm(X, y, C_value, random_state=42, n_features = None):
-    outer = KFold(n_splits=10, shuffle=True, random_state=random_state)
-    metrics = []
-    subset_sizes = []
+
+def run_outer_cv_svm(X, y, C_value, n_features=None):
+    outer = StratifiedKFold(n_splits=10, shuffle=True, random_state=21207103)
+    inner = StratifiedKFold(n_splits=10, shuffle=True, random_state=21207103+1)
     n_features = "auto" if n_features is None else n_features
+    base_svm = SVC(C=C_value, kernel='rbf')
+    sfs = SequentialFeatureSelector(
+        estimator=clone(base_svm),
+        n_features_to_select=n_features,
+        direction="forward",
+        scoring="roc_auc",
+        tol=1e-5,
+        cv=inner,
+        n_jobs=-1
+    )
+    metrics = []
+    n_selected = []
 
     for tr, te in outer.split(X, y):
-        base_svm = SVC(C=C_value, kernel="linear", probability=True)
-        sfs = SequentialFeatureSelector(estimator=base_svm, n_features_to_select=n_features, direction="forward", cv=5)
-
+        # Order matters: scale -> SFS -> final model
         pipe = Pipeline([
-            ("scaler", MinMaxScaler()),
-            ("sfs", sfs),
-            ("svm", base_svm)
+            ("sfs", clone(sfs)),
+            ("svm", clone(base_svm))
         ])
 
         pipe.fit(X[tr], y[tr])
+        n_selected.append(len(pipe.named_steps["sfs"].get_support(indices=True)))
+
         yp = pipe.predict(X[te])
-        proba = pipe.predict_proba(X[te])[:, 1]
-
+        scores = pipe.decision_function(X[te])
         acc = accuracy_score(y[te], yp)
-        f1m = f1_score(y[te], yp, average="macro")
-        auc = roc_auc_score(y[te], proba)
+        f1 = f1_score(y[te], yp, average="binary")
+        auc = roc_auc_score(y[te], scores)
+        metrics.append([acc, f1, auc])
 
-        ksel = pipe.named_steps["sfs"].get_support(indices=True).size
-        subset_sizes.append(ksel)
-        metrics.append([acc, f1m, auc])
+    return np.array(metrics), np.array(n_selected)
 
-    return np.array(metrics), np.array(subset_sizes)
-
-def print_svm(scores, C, subset_sizes, type):
+def print_svm(scores, C, subset_sizes):
     mean, std = np.nanmean(scores, axis=0), np.nanstd(scores, axis=0)
-    print(f"SVM (C={C}, type = {type})")
-    print(f"Mean acc={mean[0]:.4f}, F1={mean[1]:.4f}, AUC={mean[2]:.4f}")
-    print(f"Std  acc={std[0]:.4f}, F1={std[1]:.4f}, AUC={std[2]:.4f}")
-    print(f"Avg subset size={np.mean(subset_sizes):.2f}, per fold={subset_sizes}")
-    print("-" * 40)
+    mean_subset = np.mean(subset_sizes)
+
+    # Header (prints once for reference)
+
+    # Row formatted for LaTeX
+    row = (
+        f"{C} & "
+        f"{mean_subset:.0f} & "
+        f"{mean[0]:.2f} & {std[0]:.2f} & "
+        f"{mean[1]:.2f} & {std[1]:.2f} & "
+        f"{mean[2]:.2f} & {std[2]:.2f}\\\\"
+    )
+    print(row)
+
+
 
 
