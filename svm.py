@@ -26,7 +26,6 @@ def run_outer_cv_svm(X, y, C_value, n_features=None):
     n_selected = []
 
     for tr, te in outer.split(X, y):
-        # Order matters: scale -> SFS -> final model
         pipe = Pipeline([
             ("sfs", clone(sfs)),
             ("svm", clone(base_svm))

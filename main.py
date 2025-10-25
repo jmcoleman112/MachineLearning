@@ -8,9 +8,9 @@ X, y, feature_names = feature_extraction()
 # print_feature_stats(X, feature_names)
 # analyze_feature_distributions(X, y, feature_names)
 X= minmax_scale_features(X)
-# print_feature_stats(X, feature_names)
+print_feature_stats(X, feature_names)
 
-input = [0,1,0]
+input = [1,1,1]
 if input[0]==1:
     results = {}
     print("K  & Mean Acc. & Acc. Std. Dev. & Mean F1 & F1 Std. Dev. & Mean AUC & AUC Std. Dev")

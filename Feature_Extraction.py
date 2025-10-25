@@ -77,9 +77,9 @@ def feature_extraction():
         htr_R = np.mean(heel_R[stance_R]) / np.mean(toe_R[stance_R])
 
         # Demographics
-        query = """SELECT Gender, Age, "Speed_01 (m/sec)", "Height (meters)", "Weight (kg)"
+        query = """SELECT Gender, Age, "Speed_01 (m/sec)", "Height (meters)", "TUAG"
                    FROM demographics WHERE ID = ?"""
-        gender, age, speed, height, weight = cursor.execute(query, (patient,)).fetchone()
+        gender, age, speed, height, TUAG = cursor.execute(query, (patient,)).fetchone()
         gender_m = 1.0 if gender.lower() == "male" else 0.0
 
         features[i, :] = [
@@ -87,7 +87,7 @@ def feature_extraction():
             np.std(swing_all, ddof=1) / np.mean(swing_all),                                     # 1 swing_time_var
             np.std(step_all, ddof=1) / np.mean(step_all),                                       # 2 step_time_var
             mean_stride_L / mean_stride_R,                                                      # 3 stride_time_asym
-            mean_swing_L / mean_swing_R,                                                        # 4 swing_time_asym
+    mean_swing_L / mean_swing_R,                                                                # 4 swing_time_asym
             mean_step_LR / mean_step_RL,                                                        # 5 step_time_asym
             mean_stance_L / mean_stance_R,                                                      # 6 stance_time_asym
             np.mean(contact_L[:n_min] & contact_R[:n_min]),                                     # 7 double_support
@@ -97,7 +97,7 @@ def feature_extraction():
             float(age),                                                                         # 11 Age
             float(speed),                                                                       # 12 Speed (m/s)
             float(height),                                                                      # 13 Height (m)
-            float(weight)                                                                       # 14 Weight (kg)
+            float(TUAG)                                                                       # 14 Weight (kg)
         ]
 
         # Label (1=PD, 0=Control)
